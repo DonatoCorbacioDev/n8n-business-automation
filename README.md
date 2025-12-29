@@ -34,6 +34,7 @@ This repo contains **5 progressive automation projects** I developed while learn
 
 ## Project Structure
 
+```
 n8n-business-automation/
 ├── README.md
 ├── exercise-1-email-automation/ # Gmail → Drive → Slack
@@ -41,6 +42,7 @@ n8n-business-automation/
 ├── exercise-3-linkedin-leads/ # LinkedIn lead scraping + AI scoring
 ├── exercise-4-survey-crm/ # Survey → AI → CRM automation
 └── exercise-5-rag-chatbot/ # RAG chatbot with Supabase
+```
 
 ## Why I Built This
 
@@ -71,3 +73,5 @@ Open source for educational purposes. Feel free to learn from or build upon thes
 ## Contact
 
 Questions? Suggestions? Open an issue or reach out via GitHub.
+
+Donato

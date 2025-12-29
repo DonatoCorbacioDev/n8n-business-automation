@@ -46,8 +46,8 @@ n8n-business-automation/
 
 I wanted to explore **real business automation scenarios** beyond basic tutorials. Each workflow solves a practical problem:
 
-- **Exercise 1-2:** Document management and content production automation
-- **Exercise 3-4:** Lead generation and qualification with AI
+- **Exercise 1–2:** Document management and content production automation
+- **Exercise 3–4:** Lead generation and qualification with AI
 - **Exercise 5:** Advanced AI chatbot with vector search and fallback handling
 
 These projects helped me understand how to:

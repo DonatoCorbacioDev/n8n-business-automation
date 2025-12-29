@@ -1,0 +1,202 @@
+{
+  "name": "1 - extra mile",
+  "nodes": [
+    {
+      "parameters": {
+        "trigger": ["message"],
+        "channelId": {
+          "__rl": true,
+          "value": "C09FLQPTUQL",
+          "mode": "list",
+          "cachedResultName": "ciao"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [-64, 0],
+      "id": "3cc0f9ed-67cc-4dd8-9be2-e8a073227c3b",
+      "name": "Slack Trigger",
+      "webhookId": "946e3cc3-a5d5-4e4f-bb3d-681185650c8f",
+      "credentials": {
+        "slackApi": {
+          "id": "z7INrziOvUF9gBar",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d2bb403-ad00-4d35-b3a7-be80e0d9afd6",
+              "name": "content",
+              "value": "={{$json.text}}",
+              "type": "string"
+            },
+            {
+              "id": "2560f025-a55a-4c28-b2c0-de5b04648ca3",
+              "name": "filename",
+              "value": "={{'slack-' + $now.toFormat('yyyyLLdd-HHmmss') + '.txt'}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [128, 0],
+      "id": "bb37f0d6-dff3-4d95-9fe1-88e271160021",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "content",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [336, 0],
+      "id": "6f66f3ac-5c33-44ab-b938-8091df41d4da",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "name": "={{$json.filename}}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1_2kLMYGCjr6Jw5piugHnvVhNMnfiCsZM",
+          "mode": "list",
+          "cachedResultName": "My Drive Folder",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1_2kLMYGCjr6Jw5piugHnvVhNMnfiCsZM"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [624, 208],
+      "id": "e3f1b32b-92e5-4dcf-b0a8-0ae22964326e",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yERSAJ8GZ3XGZSwv",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [864, 16],
+      "id": "87ce7857-1c75-467d-83d6-7d376fade8bb",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "Nuovo messaggio da Slack",
+        "message": "In allegato trovi il file con il contenuto del messaggio Slack.",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [{}]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1104, 16],
+      "id": "4f8b2c20-befe-451f-a45c-74cd8126febc",
+      "name": "Send a message",
+      "webhookId": "d2749d33-29d3-46e2-93cb-bdfaaaf0a1be",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "71FSzEuS4snItVkJ",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Slack Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "74c35645-a99c-40ba-a286-f8d100a8f1c7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5499e25cd71a00a76e6801f1a3516c0b0b8d997bff1384e8965d143e5c9e6778"
+  },
+  "id": "fqb6a8nHuUzrLenr",
+  "tags": []
+}

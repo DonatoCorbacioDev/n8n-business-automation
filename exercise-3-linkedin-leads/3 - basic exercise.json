@@ -1,0 +1,568 @@
+{
+  "name": "3 - basic exercise",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-624, -192],
+      "id": "468ea4a2-11ca-4901-9d61-ec75d5d37167",
+      "name": "Daily Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "af99b6c3-9a33-49db-9da9-0e04ac0e2826",
+              "name": "keyword",
+              "value": "python developer",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-288, -192],
+      "id": "1a0b8adc-d7dc-414f-bd9e-e0172b8efbd6",
+      "name": "Keyword Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: { keyword }  ->  Output: { keyword, query }\nconst kw = ($json.keyword || \"\").trim().replace(/\\s+/g, \" \");\nconst query = `site:linkedin.com/in/ ${kw}`;  \nreturn [{ keyword: kw, query }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [16, -192],
+      "id": "d994e8fc-08e8-44b9-801d-d0b9ae983df1",
+      "name": "Build Google Query"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/customsearch/v1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "cx",
+              "value": "YOUR_GOOGLE_SEARCH_ENGINE_ID"
+            },
+            {
+              "name": "q",
+              "value": "={{$json.query}}"
+            },
+            {
+              "name": "num",
+              "value": "10"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "start",
+                    "value": "={{ $response.body.queries?.nextPage?.[0]?.startIndex || 1 }}"
+                  }
+                ]
+              },
+              "limitPagesFetched": true,
+              "maxRequests": 1
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [336, -192],
+      "id": "48e29404-fdd3-41d8-8d37-b15139710c01",
+      "name": "Google Search API",
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "M0HMwaHWckXiC0aj",
+          "name": "Query Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json;\nconst items = (body.items ?? [])\n  .filter(i => (i.link || \"\").includes(\"linkedin.com/in/\"))\n  .map(i => ({ title: i.title||\"\", link: i.link||\"\", snippet: i.snippet||\"\" }));\nreturn [{ keyword: $node[\"Keyword Input\"].json.keyword, results: items }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [672, -192],
+      "id": "a48ec7c3-f3c1-4537-bb4d-7c766d63192c",
+      "name": "Filter LinkedIn Results"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "[\n  { \"full_name\": \"Mario Rossi\", \n  \"current_role\": \"Python Developer\", \"company\": \"Tech Solutions S.p.A.\", \"location\": \"Milan, Italy\", \"linkedin_url\": \"https://www.linkedin.com/in/mario-rossi\", \n  \"source_title\": \"Mario Rossi | Python Developer | LinkedIn\",\n  \"source_snippet\": \"Experienced Python developer in Italy.\", \n  \"keyword_used\": \"python developer\",\n  \"notes\": \"\" },\n  { \"full_name\": \"Laura Bianchi\",\n    \"current_role\": \"Senior Python Engineer\", \n    \"company\": \"Innovation Labs\",\n    \"location\": \"Rome, Italy\",\n    \"linkedin_url\": \"https://www.linkedin.com/in/laura-bianchi\", \"source_title\": \"Laura Bianchi - Senior Python Engineer\",\n    \"source_snippet\": \"Python expert with 5+ years experience.\",\n    \"keyword_used\": \"python developer\", \"notes\": \"\" } \n]",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [1056, 80],
+      "id": "e5f7db37-faae-4ba7-b9e5-04c850d58021",
+      "name": "Output Parser (JSON Schema)"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [816, 80],
+      "id": "90b00e72-a782-4761-9517-10f8e214d8d2",
+      "name": "Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "0vr31XUva6PqAbRv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [1056, 288],
+      "id": "ed0a41dd-3235-4459-b85d-ed1c447dbffc",
+      "name": "Gemini2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "0vr31XUva6PqAbRv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analizza i risultati di ricerca LinkedIn e restituisci un array JSON strutturato.\n\nRISULTATI: {{ JSON.stringify($json.results, null, 2) }}\n\nKEYWORD: {{ $json.keyword }}\n\nREGOLE:\n- Estrai informazioni SOLO dai dati forniti\n- Massimo 25 profili\n- Solo URL con linkedin.com/in/\n- Rimuovi duplicati per linkedin_url\n- Se un campo non è disponibile, usa stringa vuota\n- Estrai il nome dal campo \"title\"\n- Estrai ruolo/azienda/località dallo \"snippet\" se presente\n\nRestituisci un array JSON con questi campi per ogni profilo:\n- full_name: nome completo estratto dal title\n- current_role: ruolo attuale se disponibile\n- company: azienda se disponibile\n- location: località se disponibile\n- linkedin_url: URL completo del profilo LinkedIn\n- source_title: titolo originale del risultato\n- source_snippet: snippet originale del risultato\n- keyword_used: la keyword cercata ({{ $json.keyword }})\n- notes: lascia vuoto",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [992, -192],
+      "id": "6f9f4856-c724-4044-93f8-d585a1e7c76e",
+      "name": "AI Formatter"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [1440, -192],
+      "id": "a2918516-6582-4aaa-83dd-f36300bb41e7",
+      "name": "Split Leads Array"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appUJhXtoC8dMbc6A",
+          "mode": "list",
+          "cachedResultName": "My Workspace",
+          "cachedResultUrl": "https://airtable.com/appUJhXtoC8dMbc6A"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhyad9ljZXDUlAy",
+          "mode": "list",
+          "cachedResultName": "Lead",
+          "cachedResultUrl": "https://airtable.com/appUJhXtoC8dMbc6A/tblhyad9ljZXDUlAy"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "full_name": "={{$json.full_name}}",
+            "current_role": "{{$json.current_role}}",
+            "company": "{{$json.company}}",
+            "location": "{{$json.location}}",
+            "linkedin_url": "{{$json.linkedin_url}}",
+            "source_title": "{{$json.source_title}}",
+            "source_snippet": "{{$json.source_snippet}}",
+            "keyword_used": "{{$json.keyword_used}}",
+            "notes": "{{$json.notes}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "current_role",
+              "displayName": "current_role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "source_title",
+              "displayName": "source_title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "source_snippet",
+              "displayName": "source_snippet",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "keyword_used",
+              "displayName": "keyword_used",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [1776, -192],
+      "id": "fd0095fd-e11c-49cb-b194-47b7d1280595",
+      "name": "Create Record in Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "buObLeqG2DGHCa4r",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Esegue automaticamente il flusso ogni giorno (es. ore 9:00).",
+        "height": 96,
+        "width": 160,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-640, -320],
+      "typeVersion": 1,
+      "id": "7e3d80a9-004e-4e7c-840c-6c9cfc9ce340",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Definisce la keyword di ricerca (es. ‘python developer’).",
+        "height": 96,
+        "width": 150,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-304, -320],
+      "typeVersion": 1,
+      "id": "7334a647-8843-4d5a-b8f0-7c4594fe02fe",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Costruisce la query da passare a Google Search API includendo \"site:linkedin.com/in/\".",
+        "height": 96,
+        "width": 192,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-16, -320],
+      "typeVersion": 1,
+      "id": "3b7289ea-e9e5-496d-8871-faac86816b9a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Esegue la ricerca tramite Google Custom Search e restituisce i risultati.",
+        "height": 80,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [304, -304],
+      "typeVersion": 1,
+      "id": "2d594fb4-f7cd-460c-ace1-7802af5b9cbd",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Filtra i risultati e mantiene solo i link LinkedIn personali.",
+        "height": 80,
+        "width": 160,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [640, -304],
+      "typeVersion": 1,
+      "id": "16699223-d9d0-4bb9-aede-48204967ca6e",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Usa l’AI (Gemini) per estrarre i dati principali (nome, ruolo, azienda, ecc.) in formato JSON.",
+        "height": 80,
+        "width": 256,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [992, -304],
+      "typeVersion": 1,
+      "id": "97b7e5ec-203e-4e97-9a4d-0c150f56e98e",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "Verifica che la risposta AI sia un JSON valido secondo lo schema definito.",
+        "height": 80,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1168, 192],
+      "typeVersion": 1,
+      "id": "1ce642e1-5bb5-4eb6-a4de-6c07b52589f1",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "Divide l’array JSON in singoli record, uno per ogni lead.",
+        "height": 80,
+        "width": 224,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1376, -304],
+      "typeVersion": 1,
+      "id": "032a1622-8f1e-4337-b379-7f1f9350f4a1",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "Crea un record su Airtable per ogni profilo trovato nella ricerca.",
+        "height": 80,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1744, -304],
+      "typeVersion": 1,
+      "id": "00fcffe0-b117-4666-b49a-7bfc7f49ad6c",
+      "name": "Sticky Note8"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily Trigger": {
+      "main": [
+        [
+          {
+            "node": "Keyword Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keyword Input": {
+      "main": [
+        [
+          {
+            "node": "Build Google Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Google Query": {
+      "main": [
+        [
+          {
+            "node": "Google Search API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Search API": {
+      "main": [
+        [
+          {
+            "node": "Filter LinkedIn Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter LinkedIn Results": {
+      "main": [
+        [
+          {
+            "node": "AI Formatter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Output Parser (JSON Schema)": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Formatter",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Formatter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Output Parser (JSON Schema)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Formatter": {
+      "main": [
+        [
+          {
+            "node": "Split Leads Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Leads Array": {
+      "main": [
+        [
+          {
+            "node": "Create Record in Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fdbf79d5-9bf8-4d1e-a874-ed2541bed81d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d9953f3db0edf2e511d5f33280ef74a1515db95b60afda927dcd95e52f55955"
+  },
+  "id": "aL35hShzTCzJhqOf",
+  "tags": []
+}

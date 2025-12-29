@@ -1,0 +1,665 @@
+{
+  "name": "W9 (Extra mile mile) - Donato Corbacio",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# ☛ CHATTARE CON IL MODELLO AI + SALVARE DATI USANDO IL NODO POSTGRESQL",
+        "height": 1312,
+        "width": 2720,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1680, 64],
+      "typeVersion": 1,
+      "id": "7772a5e9-8ab3-4c8d-83d5-9a490e97aa9f",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [-1552, 448],
+      "id": "b66ebd33-4c90-41d5-a518-f114d4b72883",
+      "name": "CHAT – Chat trigger (Fitness & Nutrition bot)",
+      "webhookId": "c423db98-9605-4460-8db4-17af573c252e"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [-1184, 624],
+      "id": "0bc18570-14c9-474c-9d7e-73b324c153e2",
+      "name": "CHAT – AI Agent (Fitness & Nutrition RAG)"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [-1472, 848],
+      "id": "c7c2eed6-d5df-4d4b-af31-9ebe2faa9ebb",
+      "name": "CHAT – Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qM0PWoKfSs1482g2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Use this tool to search for information about physical activity and nutrition based on the uploaded PDFs. \nAlways use this tool before answering. \nIf no relevant context is found, return nothing.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [-848, 832],
+      "id": "29114700-8713-49e5-b533-fe2c8ef22c2c",
+      "name": "CHAT – Supabase search (RAG tool)",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ZTOmCqZjmYSyv5Sl",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [-848, 1056],
+      "id": "558dd922-916d-4824-a187-db8b83e01393",
+      "name": "CHAT – Embeddings for Supabase search",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qM0PWoKfSs1482g2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [-1152, 896],
+      "id": "93cc4fe3-6857-46e7-a9b2-b0d0f95d9a98",
+      "name": "CHAT – Simple Memory (last N messages)"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [-640, 464],
+      "id": "72350282-7136-4b40-9961-987ff1f10c31",
+      "name": "CHAT – Merge chat input + AI output"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appUJhXtoC8dMbc6A",
+          "mode": "list",
+          "cachedResultName": "My Workspace",
+          "cachedResultUrl": "https://airtable.com/appUJhXtoC8dMbc6A"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhrcLycTty9pkR4",
+          "mode": "list",
+          "cachedResultName": "Rag Chat Logs",
+          "cachedResultUrl": "https://airtable.com/appUJhXtoC8dMbc6A/tblhrcLycTty9pkR4"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Datetime": "={{ $now }}\n",
+            "User": "={{ $json.sessionId || \"anonymous\" }}",
+            "Question": "={{ $json.chatInput }}",
+            "Answer": "={{ $json.output }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Datetime",
+              "displayName": "Datetime",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "User",
+              "displayName": "User",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Question",
+              "displayName": "Question",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Answer",
+              "displayName": "Answer",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "fitness",
+                  "value": "fitness"
+                },
+                {
+                  "name": "alimentazione",
+                  "value": "alimentazione"
+                },
+                {
+                  "name": "altro",
+                  "value": "altro"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "answered",
+                  "value": "answered"
+                },
+                {
+                  "name": "not_found",
+                  "value": "not_found"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [-112, 816],
+      "id": "c47f6175-f751-4b88-a3ac-23f43f8e51a9",
+      "name": "CHAT – Save Q&A to Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "2x8TzRJmQ1yqaOHl",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ee2933c6-90d8-4801-98db-5180e925de20",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "=NON_TROVATO",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [176, 464],
+      "id": "6b124626-3338-47a3-8c2c-b1db3d8279b7",
+      "name": "CHAT – Check if answer not found"
+    },
+    {
+      "parameters": {
+        "description": "={{ \n\"Domanda non trovata dal chatbot:\\n\" +\n$json.chatInput +\n\"\\n\\nRisposta AI:\\n\" +\n$json.output \n}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.zendesk",
+      "typeVersion": 1,
+      "position": [560, 448],
+      "id": "017cd40f-a199-4e73-ba78-17981da9d9aa",
+      "name": "CHAT – Create Zendesk ticket for unresolved question",
+      "credentials": {
+        "zendeskApi": {
+          "id": "VIl4BuEaPFl5zJj2",
+          "name": "Zendesk account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Sezione dedicata alla chat con l’utente:\n- ## ricezione messaggi (Chat Trigger)\n- ## chiamata all’AI Agent con RAG su Supabase\n- ## salvataggio delle risposte in Airtable\n- ## apertura ticket Zendesk se la risposta non viene trovata",
+        "height": 400,
+        "width": 400,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-2256, 512],
+      "typeVersion": 1,
+      "id": "a329b523-a06f-4964-9684-e020802273e5",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Tool del tipo vector store collegato a Supabase.\nL’AI Agent lo usa per recuperare i passaggi più rilevanti dai PDF su fitness e alimentazione prima di generare la risposta.",
+        "height": 144
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-672, 944],
+      "typeVersion": 1,
+      "id": "5959cf17-9ac4-4576-90d6-af8fcb2bb359",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "Espone una chat pubblica n8n.\nOgni messaggio dell’utente attiva l’AI Agent per rispondere a domande su fitness e alimentazione, usando i PDF indicizzati su Supabase.",
+        "height": 128,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1616, 272],
+      "typeVersion": 1,
+      "id": "d174f97d-cfd6-42f3-9918-d2fbbc8f0e9a",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "AI Agent che:\n- riceve le domande dal nodo Chat\n- usa Gemini come modello di chat\n- interroga Supabase come vector store (tool RAG)\n- utilizza la Simple Memory per mantenere il contesto della conversazione.",
+        "height": 192,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1216, 240],
+      "typeVersion": 1,
+      "id": "b0e9808a-48dd-43cc-bfe5-163290416dc9",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "content": "Salva in Airtable:\n- data/ora della richiesta\n- utente / sessione\n- domanda (Question)\n- risposta generata (Answer)\nLa tabella funge da log delle conversazioni del chatbot.",
+        "height": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [64, 928],
+      "typeVersion": 1,
+      "id": "5d1d133c-6e49-42f1-9b4e-845cdb5c56d2",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {
+        "content": "Modello di chat principale usato dall’AI Agent per generare le risposte all’utente.",
+        "height": 96
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1584, 1008],
+      "typeVersion": 1,
+      "id": "7e54e20f-6582-4d5b-bbe7-bd44a8202cf5",
+      "name": "Sticky Note16"
+    },
+    {
+      "parameters": {
+        "content": "Converte la domanda dell’utente in un vettore con Google Gemini per poterla confrontare con i vettori salvati su Supabase e recuperare il contesto più simile.",
+        "height": 128,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-928, 1200],
+      "typeVersion": 1,
+      "id": "69e3d9f7-5f8d-43ac-9d86-2025b0284286",
+      "name": "Sticky Note17"
+    },
+    {
+      "parameters": {
+        "content": "Mantiene in memoria le ultime interazioni tra utente e chatbot.\nServe a dare continuità alla conversazione (follow-up, riferimenti a domande precedenti).",
+        "height": 128,
+        "width": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1248, 1056],
+      "typeVersion": 1,
+      "id": "292f1bce-8e87-4174-9e92-bcc9b631d4e7",
+      "name": "Sticky Note18"
+    },
+    {
+      "parameters": {
+        "content": "Combina i dati provenienti dal Chat Trigger (es. chatInput, sessionId) con l’output dell’AI Agent (output).\nIl risultato viene usato sia per salvare i log in Airtable sia per controllare se la risposta è valida o “NON_TROVATO”.",
+        "height": 144,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-720, 256],
+      "typeVersion": 1,
+      "id": "2b61af2b-26a5-4ff0-9b88-1d1b5db7dd48",
+      "name": "Sticky Note19"
+    },
+    {
+      "parameters": {
+        "content": "Verifica se il campo output è uguale a NON_TROVATO.\nIn questo caso il flusso entra nel ramo che apre un ticket su Zendesk per gestire la richiesta manualmente.",
+        "height": 128,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [144, 256],
+      "typeVersion": 1,
+      "id": "1a6f7f23-c747-44d2-ad4d-9e301bc30ed2",
+      "name": "Sticky Note20"
+    },
+    {
+      "parameters": {
+        "content": "Crea un ticket in Zendesk quando il bot non è stato in grado di dare una risposta utile.\nNel campo descrizione inserisce:\n- la domanda dell’utente\n- la risposta fallita dell’AI (NON_TROVATO o contenuto simile).",
+        "height": 176,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [576, 208],
+      "typeVersion": 1,
+      "id": "f11152b0-03aa-44d6-bc89-441ca1e02853",
+      "name": "Sticky Note21"
+    },
+    {
+      "parameters": {
+        "content": "Salva ogni messaggio della chat nella tabella “chat_logs” di Supabase.\nRegistra:\n- session_id dell’utente\n- domanda (question)\n- risposta generata dall’AI (answer)\n- timestamp (created_at)\n\n\nServe per sostituire o affiancare Airtable e completare l’Extra Extra Mile.\n",
+        "height": 240,
+        "width": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-288, 192],
+      "typeVersion": 1,
+      "id": "19c69b8e-3e76-4640-8596-84390bb59121",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "chat_logs",
+          "mode": "list",
+          "cachedResultName": "chat_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.sessionId }}",
+            "question": "={{ $json.chatInput }}",
+            "answer": "={{ $json.output }}",
+            "created_at": "={{ $now }}"
+          },
+          "matchingColumns": ["id"],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "question",
+              "displayName": "question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "answer",
+              "displayName": "answer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [-208, 464],
+      "id": "69e78482-7037-4b33-9d54-e28ee63f2518",
+      "name": "CHAT – Save Q&A to Supabase (PostgreSQL)",
+      "credentials": {
+        "postgres": {
+          "id": "qG8x6qZc8JuAR5Zn",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Viene esteso il flusso della chat aggiungendo un nuovo livello di logging su Supabase.\n\n## Dopo che il modello AI risponde all’utente, i dati vengono salvati anche in una tabella PostgreSQL (“chat_logs”) utilizzando il nodo Postgres.\n\n## Questa integrazione permette:\n- ## conservazione dei dati in un database scalabile e strutturato\n- ## analisi future tramite SQL\n- ## sostituzione o affiancamento del logging su Airtable\n- ## completamento dell’Extra Extra Mile richiesto dall’esercizio\n",
+        "height": 624,
+        "width": 512,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1200, 400],
+      "typeVersion": 1,
+      "id": "50fdfd0a-e979-4937-9138-25b7d0ae5c50",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "CHAT – Chat trigger (Fitness & Nutrition bot)": {
+      "main": [
+        [
+          {
+            "node": "CHAT – AI Agent (Fitness & Nutrition RAG)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "CHAT – Merge chat input + AI output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – AI Agent (Fitness & Nutrition RAG)": {
+      "main": [
+        [
+          {
+            "node": "CHAT – Merge chat input + AI output",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "CHAT – Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "CHAT – AI Agent (Fitness & Nutrition RAG)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Supabase search (RAG tool)": {
+      "ai_tool": [
+        [
+          {
+            "node": "CHAT – AI Agent (Fitness & Nutrition RAG)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Embeddings for Supabase search": {
+      "ai_embedding": [
+        [
+          {
+            "node": "CHAT – Supabase search (RAG tool)",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Simple Memory (last N messages)": {
+      "ai_memory": [
+        [
+          {
+            "node": "CHAT – AI Agent (Fitness & Nutrition RAG)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Merge chat input + AI output": {
+      "main": [
+        [
+          {
+            "node": "CHAT – Save Q&A to Airtable",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "CHAT – Save Q&A to Supabase (PostgreSQL)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Check if answer not found": {
+      "main": [
+        [
+          {
+            "node": "CHAT – Create Zendesk ticket for unresolved question",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Save Q&A to Supabase (PostgreSQL)": {
+      "main": [
+        [
+          {
+            "node": "CHAT – Check if answer not found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d0424b00-9083-4084-93bd-7b02b0728b94",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "89df87f203f3ae8addec82e687b6ebda90cb73cf51e7401c90cd93f022de3faa"
+  },
+  "id": "ZK4ZRfHDrtPgtIg2",
+  "tags": []
+}

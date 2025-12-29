@@ -1,0 +1,821 @@
+{
+  "name": "W7 - Donato Corbacio",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "efcff69d-e848-4671-8fc9-f88983a695ec",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-1296, -48],
+      "id": "6d527cac-75cf-47ed-b557-b044aa42ba70",
+      "name": "Webhook - Ricezione survey FormBricks",
+      "webhookId": "efcff69d-e848-4671-8fc9-f88983a695ec"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c6508f87-c875-48a3-95c6-14118c0ff58e",
+              "name": "fullName",
+              "value": "={{ $json.body.data.data.xwdbv0xl8udmhf1xxj5e0xod }}",
+              "type": "string"
+            },
+            {
+              "id": "00c88ffa-a9cd-42cf-8007-0d3676740009",
+              "name": "email",
+              "value": "={{ $json.body.data.data.lm9ueqesv9g38weu0xj2x1s3 }}",
+              "type": "string"
+            },
+            {
+              "id": "9c882140-6301-43cf-9cab-8b60c3e27cf3",
+              "name": "country",
+              "value": "={{ $json.body.data.data.tlt0xx3va5qr3rx17gqpw6fn }}",
+              "type": "string"
+            },
+            {
+              "id": "6a161efa-112e-4bf8-bcd3-d71e3a32924e",
+              "name": "budget",
+              "value": "={{ $json.body.data.data.xv0h8pie1fre5heezhz239f3 }}",
+              "type": "string"
+            },
+            {
+              "id": "74dfa3a3-5eba-4806-8e1b-3f6c9a51e49c",
+              "name": "reason",
+              "value": "={{ $json.body.data.data.nue7rdida9r3cmzvg1ik0653 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-1072, -48],
+      "id": "7c374333-d484-43de-a311-b1e1434937ee",
+      "name": "Set - Mappatura campi survey"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [-720, 368],
+      "id": "0dc81ac5-df5f-4820-87bf-01cf13ddc856",
+      "name": "Gemini2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SRZoSyTci9o47vka",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"score\": 0,\n  \"tier\": \"low\",\n  \"reason\": \"string\",\n  \"next_action\": \"courtesy_email\",\n  \"nome\": \"Mario Rossi\",\n  \"email\": \"mario.rossi@example.com\"\n}\n",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [-640, 160],
+      "id": "68131c09-472c-4fe3-9fce-0a96e7f95719",
+      "name": "Parser AI"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "82e4d5ba-2529-43a4-89bb-8d596709ce42",
+              "leftValue": "={{ $json.output.next_action }}",
+              "rightValue": "sales_email",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-368, -48],
+      "id": "bd610279-da1f-4ed3-bcdc-6144dabed32a",
+      "name": "Condizione - Verifica tipo di lead "
+    },
+    {
+      "parameters": {
+        "fromEmail": "pippo@company.automation.com",
+        "toEmail": "={{ $json.output.email }}",
+        "subject": "Prossimi passi e proposta concreta",
+        "html": "=Ciao {{ $json.output.nome }},\n\ngrazie per le sue informazioni e per i suoi interessi: \"{{ $json.output.reason }}\"\n\nPossiamo aiutarti con un setup rapido (1–2 settimane) e un piano chiaro su KPI e automazioni.\n\nScegli uno slot per un confronto di 20’:\n- Domani 10:00–10:20\n- Domani 15:30–15:50\n- Venerdì 11:30–11:50\n\nA presto,  \nPippo\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [32, -192],
+      "id": "b0eabb50-0205-44fd-9422-c7c633f7b21e",
+      "name": "Email - Lead caldo (follow-up)",
+      "webhookId": "6cc8bc0a-7701-41f9-bff6-63b01d221bbf",
+      "credentials": {
+        "smtp": {
+          "id": "cKl6VPINjJWeK8zy",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "pippo@company.automation.com",
+        "toEmail": "={{ $json.output.email }}",
+        "subject": "Prossimi passi e proposta concreta",
+        "html": "=Ciao {{ $json.output.nome }},\n\ngrazie per averci contattato e per aver condiviso i suoi interessi.\n\nAl momento pensiamo che non sia il momento ideale per collaborare,\nma ti invitiamo a consultare la nostra guida gratuita sull’automazione per PMI.\n\nA presto,  \nPippo",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [32, 96],
+      "id": "32cc6082-a871-426f-9ad0-2c86ec09a07c",
+      "name": "Email - Lead freddo (cortesia)",
+      "webhookId": "6cc8bc0a-7701-41f9-bff6-63b01d221bbf",
+      "credentials": {
+        "smtp": {
+          "id": "cKl6VPINjJWeK8zy",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1,
+      "position": [-1280, 928],
+      "id": "7b609f86-12fb-4e3a-b702-aa529d4ab028",
+      "name": "Trigger - Lettura risposte via IMAP",
+      "credentials": {
+        "imap": {
+          "id": "R9FSfxgrIJsQadBw",
+          "name": "IMAP account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "819e2845-0a68-4262-b089-cfeb727f2f1b",
+              "name": "from",
+              "value": "giulia.verdi@azienda.it",
+              "type": "string"
+            },
+            {
+              "id": "5f6cf79f-add8-40ae-acf6-4b516858bfbf",
+              "name": "subject",
+              "value": "Re: Prossimi passi e proposta concreta",
+              "type": "string"
+            },
+            {
+              "id": "b1f33c78-c49a-42ed-8efb-9f5ea13baa1d",
+              "name": "textPlain",
+              "value": "Buongiorno Pippo, se vuole ci possiamo sentire domani alle 10. Mi fa sapere così mi organizzo. Le auguro una buona giornata. Cordiali saluti, Giulia Verdi",
+              "type": "string"
+            },
+            {
+              "id": "609b4a93-cd05-4722-a3ae-6eb300ec9929",
+              "name": "fullName",
+              "value": "Giulia Verdi",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-1280, 1136],
+      "id": "3ace9f78-c56a-4e45-ab08-b42c251eccc6",
+      "name": "Set - Dati simulati di risposta per test"
+    },
+    {
+      "parameters": {
+        "description": "=Email: {{ $json.from }} -  Nome: {{ $json.fullName }} - Messaggio: {{ $json.textPlain }} - ",
+        "jsonParameters": true,
+        "additionalFieldsJson": "={\n\"requester\": {\n    \"email\":\"{{ $json.from }}\",\n    \"name\":\"{{ $json.fullName }}\"\n}\n} \n"
+      },
+      "type": "n8n-nodes-base.zendesk",
+      "typeVersion": 1,
+      "position": [-768, 1008],
+      "id": "31970ead-bf33-436d-be45-ea2bdbd70a1c",
+      "name": "Zendesk - Crea ticket da risposta",
+      "credentials": {
+        "zendeskApi": {
+          "id": "HUsj6zoRMMV9V2bY",
+          "name": "Zendesk account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09J5HFHM35",
+          "mode": "list",
+          "cachedResultName": "test"
+        },
+        "text": "=🎟️ Nuovo ticket segnalato:  {{ $json.description }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [-400, 1008],
+      "id": "53fb93a7-d22c-4bdd-9a03-b0290c16f0f6",
+      "name": "Slack - Notifica nuovo ticket",
+      "webhookId": "ff14e575-7915-4e3f-bb42-eb6872250cdd",
+      "credentials": {
+        "slackApi": {
+          "id": "cf5ug8O7kxmJNF1Z",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 23,
+              "triggerAtMinute": 59
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-1296, 1888],
+      "id": "787a37f3-1821-4142-b5a7-e9b0ddf1232c",
+      "name": "Trigger - Esecuzione giornaliera (es. 23:59 Rome)"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.zendesk",
+      "typeVersion": 1,
+      "position": [-1024, 1888],
+      "id": "fa9f58d8-7dd3-48b2-b00a-06d51cd2fb13",
+      "name": "Zendesk - Estrai ticket giornalieri",
+      "credentials": {
+        "zendeskApi": {
+          "id": "HUsj6zoRMMV9V2bY",
+          "name": "Zendesk account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [-880, 160],
+      "id": "bda414bf-253b-4818-99d4-350e84e67f1e",
+      "name": "Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SRZoSyTci9o47vka",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analizza il seguente lead e valuta la qualità del contatto per un business di automazione/AI B2B.\n\nDati ricevuti:\nNome: {{$json.fullName}}\nEmail: {{$json.email}}\nPaese: {{$json.country}}\nBudget: {{$json.budget}}\nMotivo dell'interesse: {{$json.reason}}\n\nRestituisci SOLO un oggetto JSON nel formato:\n{\n  \"score\": 0-100,\n  \"tier\": \"low\" | \"mid\" | \"high\",\n  \"reason\": \"string breve (<200 caratteri)\",\n  \"next_action\": \"courtesy_email\" | \"sales_email\",\n  \"Nome\": {{$json.fullName}}\n  \"Email\": {{$json.email}}\n}\n\nRegole di valutazione:\n- Budget: \"<5k\" = penalizza (lead freddo); \"5–20k\" = medio; \">20k\" = molto interessante.\n- Reason: più è specifico (processi, KPI, automazione reale) più aumenta il punteggio.\n- Se il testo mostra curiosità vaga o studio, assegna \"courtesy_email\".\n- Se mostra intenzione chiara o progetto concreto, assegna \"sales_email\".",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [-800, -48],
+      "id": "da745aa3-19dd-42bf-8d80-ced47e82b714",
+      "name": "AI Agent1 - Classificazione lead"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sei un analista. Ricevi un report di ticket Zendesk creato adesso (subject, requester, status, created_at, tags, comment preview).\n\nFormato per ogni ticket:\n# Report Ticket Giornaliero ({{ $json.id }})\nDescription: {{ $json.description }}\nData e Ora: {{ $json.created_at }}\n\nCreami un report testuale (un riassunto generale) per valutare l'andamento. \n\nSchedulato per una esecuzione giornaliera: {{ $('Trigger - Esecuzione giornaliera (es. 23:59 Rome)').item.json['Readable date'] }}\n\nRestituiscimi come risultato un JSON riempiendo questi dati:\n{ \"totalTickets\": \"\" ,\n   \"summary\": \"\",\n   \"adaptation\":  \"\",\n   \"dataHour\": \"\"\n}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [-704, 1888],
+      "id": "4be9f88d-4ecb-4fe0-8b66-98120c9b6ca0",
+      "name": "AI Agent2 - Sintesi report giornaliero"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [-848, 2096],
+      "id": "7e599569-5c1c-479b-81b2-82033ba8fd60",
+      "name": "Gemini3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SRZoSyTci9o47vka",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "title": "Report ticket giornalieri"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [-256, 1888],
+      "id": "f3b08494-3536-42cf-825d-b15a8f8d2a20",
+      "name": "Google Docs - Crea report",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "tGXy37FRloyk4KVd",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "pippo@company.automation.com",
+        "toEmail": "giulia.verdi@azienda.it",
+        "subject": "Report Giornaliero",
+        "html": "=Le mando il report giornaliero di oggi:\n\n{{ $('AI Agent2 - Sintesi report giornaliero').item.json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [96, 1888],
+      "id": "de72d2ce-6f17-4e22-9bd8-4b9609a089af",
+      "name": "Email - Invio report al responsabile",
+      "webhookId": "4645d67e-5f44-4df5-8a40-67be21d9685a",
+      "credentials": {
+        "smtp": {
+          "id": "cKl6VPINjJWeK8zy",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Rinomina i field ID di FormBricks in campi leggibili (fullName, email, budget, reason)",
+        "height": 112,
+        "width": 150,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1088, -208],
+      "typeVersion": 1,
+      "id": "729a8b88-3284-4093-b8b6-900d3e6aa8d9",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Agente AI per classificare il lead ",
+        "height": 80,
+        "width": 150,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-752, -192],
+      "typeVersion": 1,
+      "id": "0f6b9e24-2b4a-4f15-8143-574c28a660c6",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Riceve i dati compilati dal form (nome, email, budget, motivo) via webhook",
+        "height": 112,
+        "width": 150,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1328, -208],
+      "typeVersion": 1,
+      "id": "f4450b49-dce9-4c80-a853-3bdcecb9b2ba",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Converte la risposta AI in JSON strutturato (score, tier, next_action, etc)",
+        "height": 80,
+        "width": 208,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-560, 272],
+      "typeVersion": 1,
+      "id": "ab4b7c38-d447-414f-a66b-dd1aa5d85080",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Invia email con proposta di call",
+        "height": 80,
+        "width": 150,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [16, -304],
+      "typeVersion": 1,
+      "id": "75aa0322-5d9a-4018-999e-11f29d7a5f2f",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Se next_action = sales_email → condizione vera per follow-up, altrimenti falso per cortesia",
+        "height": 96,
+        "width": 208,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-432, -176],
+      "typeVersion": 1,
+      "id": "aa9b04ae-01a0-4ef9-a8ae-b3ffdd4bb853",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "Invia email con ringraziamento e senza proseguire con la collaborazione",
+        "height": 80,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-16, 272],
+      "typeVersion": 1,
+      "id": "23cf99e1-4821-457d-be33-9342e2cb7081",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "Avvia il flusso ogni giorno alle 23:59",
+        "height": 80,
+        "width": 150,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1328, 1776],
+      "typeVersion": 1,
+      "id": "68fd73ce-2c1d-41df-9310-963181527a7a",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "Recupera tutti i ticket creati nella giornata",
+        "height": 80,
+        "width": 176,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1056, 1776],
+      "typeVersion": 1,
+      "id": "c06e9301-df8c-4c31-9ab8-29d281986ad7",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "Invia via email il link al doc e la sintesi AI",
+        "height": 80,
+        "width": 192,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [80, 1760],
+      "typeVersion": 1,
+      "id": "84a9f154-4b34-45db-b4e1-85cf382ad121",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "Avvisa su Slack quando viene creato un nuovo ticket",
+        "height": 80,
+        "width": 176,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-416, 880],
+      "typeVersion": 1,
+      "id": "9b496bc3-4a06-44ac-9178-e9ebce846086",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "Genera automaticamente un ticket con testo e mittente",
+        "height": 80,
+        "width": 224,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-816, 880],
+      "typeVersion": 1,
+      "id": "91d0ae19-9dbc-4f01-9836-91fcca833a46",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "Mock email per effettuare test senza messaggi reali",
+        "height": 80,
+        "width": 208,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1328, 1328],
+      "typeVersion": 1,
+      "id": "bbd4e928-c950-4b36-a84b-b87aace3f4a3",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "content": "Attende nuove email di risposta dopo il follow-up",
+        "height": 80,
+        "width": 224,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1328, 800],
+      "typeVersion": 1,
+      "id": "5ea10b5a-3d6e-4c21-b8ec-079ea3a9fd2f",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "content": "Scrive il riassunto AI su un Google Doc condiviso",
+        "height": 80,
+        "width": 224,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-320, 1760],
+      "typeVersion": 1,
+      "id": "00544a89-3344-42c3-bec9-28126757cf3f",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {
+        "content": "Agente AI per sintetizzare i dati dei ticket",
+        "height": 80,
+        "width": 208,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-704, 1776],
+      "typeVersion": 1,
+      "id": "77ba6de4-00a2-4bbe-b5a0-c16e85941ecf",
+      "name": "Sticky Note16"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 912,
+        "width": 2128
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1584, -352],
+      "typeVersion": 1,
+      "id": "abcf79a9-23a0-4823-8cfa-82a6a6a57715",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 704,
+        "width": 1536
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1536, 752],
+      "typeVersion": 1,
+      "id": "f644fe9c-da67-4df4-8365-a62cafa29945",
+      "name": "Sticky Note17"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 560,
+        "width": 1888
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1536, 1728],
+      "typeVersion": 1,
+      "id": "1cd13b13-f79b-4d0a-9f18-53a55173afeb",
+      "name": "Sticky Note18"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Ricezione survey FormBricks": {
+      "main": [
+        [
+          {
+            "node": "Set - Mappatura campi survey",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Mappatura campi survey": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1 - Classificazione lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Parser AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser AI": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1 - Classificazione lead",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Condizione - Verifica tipo di lead ": {
+      "main": [
+        [
+          {
+            "node": "Email - Lead caldo (follow-up)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email - Lead freddo (cortesia)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email - Lead caldo (follow-up)": {
+      "main": [[]]
+    },
+    "Trigger - Lettura risposte via IMAP": {
+      "main": [
+        [
+          {
+            "node": "Zendesk - Crea ticket da risposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Dati simulati di risposta per test": {
+      "main": [
+        [
+          {
+            "node": "Zendesk - Crea ticket da risposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zendesk - Crea ticket da risposta": {
+      "main": [
+        [
+          {
+            "node": "Slack - Notifica nuovo ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger - Esecuzione giornaliera (es. 23:59 Rome)": {
+      "main": [
+        [
+          {
+            "node": "Zendesk - Estrai ticket giornalieri",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zendesk - Estrai ticket giornalieri": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2 - Sintesi report giornaliero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1 - Classificazione lead",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1 - Classificazione lead": {
+      "main": [
+        [
+          {
+            "node": "Condizione - Verifica tipo di lead ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2 - Sintesi report giornaliero": {
+      "main": [
+        [
+          {
+            "node": "Google Docs - Crea report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2 - Sintesi report giornaliero",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Docs - Crea report": {
+      "main": [
+        [
+          {
+            "node": "Email - Invio report al responsabile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cde182bd-89d0-4ee9-8c7c-b6caa7d901b9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bfe2864d3f694d155745d061b4ff7ce820a16d5b2c4a556fc3ea2fee22fed8e3"
+  },
+  "id": "t1FWHLG3JrwlUS5v",
+  "tags": []
+}

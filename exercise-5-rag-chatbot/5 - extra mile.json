@@ -1,0 +1,514 @@
+{
+  "name": "W9 (Extra mile) - Donato Corbacio",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# ☛  DASHBOARD - Risposta di una pagina HTML partendo da un webhook",
+        "height": 672,
+        "width": 1792,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-208, -256],
+      "typeVersion": 1,
+      "id": "39fab128-3d4b-4fb2-989a-da9b612caeb8",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# ☛  REPORT - Genera un report e viene inviato tramite mail",
+        "height": 864,
+        "width": 1792,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-208, 496],
+      "typeVersion": 1,
+      "id": "143fd266-6f57-4f1d-8412-4cbe8c0c5339",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Sezione dedicata per rispondere a un Webhook e genera una pagina HTML contenente:\n- ## una lista dei temi più richiesti\n- ## le risposte registrate\n- ## un grafico (Chart.js) con il numero di interazioni per giorno della settimana\n\n## I dati vengono letti da Airtable, formattati in JavaScript e la pagina HTML finale viene prodotta da un AI Agent (Gemini).\n## La risposta della sezione è una vera dashboard HTML.",
+        "height": 544,
+        "width": 464,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-848, -192],
+      "typeVersion": 1,
+      "id": "c1ac548c-b585-4e55-b18c-892de32b8067",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Sezione dedicata per analizzare le conversazioni registrate dal chatbot, identifica criticità e problemi ricorrenti e genera un report HTML tramite AI.\n## Il report viene inviato via email.\n## Non è stato utilizzato Google Docs a causa di problemi di credenziali/API, ma la logica dell’esercizio è rispettata.",
+        "height": 336,
+        "width": 464,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-864, 752],
+      "typeVersion": 1,
+      "id": "d06006af-dd09-49f1-a3b8-80eb5da8f367",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "path": "/fitness-dashboard",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-112, -48],
+      "id": "b0f60466-c712-4f4f-8dce-07497754e57e",
+      "name": "DASH – Webhook richiesta dashboard",
+      "webhookId": "f7150d65-40f3-4e84-8d23-96bf04e0cb02"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appUJhXtoC8dMbc6A",
+          "mode": "list",
+          "cachedResultName": "My Workspace",
+          "cachedResultUrl": "https://airtable.com/appUJhXtoC8dMbc6A"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhrcLycTty9pkR4",
+          "mode": "list",
+          "cachedResultName": "Rag Chat Logs",
+          "cachedResultUrl": "https://airtable.com/appUJhXtoC8dMbc6A/tblhrcLycTty9pkR4"
+        },
+        "returnAll": false,
+        "options": {},
+        "sort": {
+          "property": [
+            {
+              "field": "Datetime",
+              "direction": "desc"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [224, -48],
+      "id": "f0f27365-b83c-4359-8178-965cc0954c61",
+      "name": "DASH – Legge log da Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "2x8TzRJmQ1yqaOHl",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const logs = [];\n\nfor (const item of items) {\n  const data = item.json;\n  logs.push({\n    datetime: data.Datetime,\n    user: data.User,\n    question: data.Question,\n    answer: data.Answer,\n  });\n}\n\nconst weekdayCounts = {\n  Monday: 0,\n  Tuesday: 0,\n  Wednesday: 0,\n  Thursday: 0,\n  Friday: 0,\n  Saturday: 0,\n  Sunday: 0,\n};\n\nfor (const log of logs) {\n  const dt = log.datetime;\n  if (!dt) continue;\n\n  try {\n    const d = new Date(dt);\n    const jsDay = d.getDay();\n\n    const nameByIndex = [\n      \"Sunday\",\n      \"Monday\",\n      \"Tuesday\",\n      \"Wednesday\",\n      \"Thursday\",\n      \"Friday\",\n      \"Saturday\",\n    ];\n\n    const dayName = nameByIndex[jsDay];\n    if (weekdayCounts[dayName] !== undefined) {\n      weekdayCounts[dayName]++;\n    }\n  } catch (e) {\n  }\n}\n\nconst labels = Object.keys(weekdayCounts);\nconst counts = Object.values(weekdayCounts);\n\nreturn [\n  {\n    json: {\n      logs,\n      chartData: {\n        labels,\n        counts,\n      },\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [592, -48],
+      "id": "df263b4f-6cdc-4766-ad52-e22ce68dfc13",
+      "name": "DASH – Prepara dati per HTML + grafico"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [944, 208],
+      "id": "c7279763-c6be-4dca-a28e-5d4b7deddfea",
+      "name": "DASH – Modello Gemini per HTML",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qM0PWoKfSs1482g2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a frontend developer who generates a clean, modern HTML dashboard (a full <html> page).\n\nI will give you JSON with:\n- logs: an array of objects {datetime, user, question, answer}\n- chartData: {labels, counts} where labels are weekdays and counts are number of answers.\n\nGenerate a FULL HTML page that contains:\n\n1. A single main page (do NOT repeat the entire dashboard twice).\n2. A top header with title: \"Fitness & Nutrition Bot – Q&A Dashboard\".\n3. A section \"Most requested topics\":\n   - Work in ITALIAN.\n   - Group questions by themes.\n   - Show 3 cards, each card with:\n     - Titolo del tema\n     - Breve descrizione (2–3 righe)\n     - 1 esempio di domanda dell’utente.\n4. A section \"Answers log\":\n   - Show ONLY the first 5 logs.\n   - For each row show:\n     - Data (formattata gg/mm/aaaa, hh:mm)\n     - User (solo i primi 8 caratteri dell’ID + \"...\")\n     - Question\n     - Answer TRONCATA a massimo 150 caratteri, con \"...\" alla fine.\n   - Use a responsive HTML table with nice spacing and zebra rows.\n5. A section \"Answers per weekday\":\n   - Use Chart.js from CDN.\n   - Render a bar chart using chartData.labels as labels and chartData.counts as data.\n   - Titoli del grafico e assi in ITALIANO.\n\nSTYLE REQUIREMENTS:\n- Use a single <style> block in the <head>.\n- Use a clean, modern layout:\n  - body background: #0f172a\n  - main container max-width: 1100px, centered, background #ffffff, border-radius 12px, padding 24px.\n  - line-height: 1.6.\n  - cards for topics with light shadow and border-radius.\n  - table with zebra rows and small padding.\n- Usa testi (titoli, descrizioni, etichette) in ITALIANO.\n\nIMPORTANT:\n- Return ONLY raw HTML (starting with <!DOCTYPE html>).\n- Do NOT wrap the HTML in markdown.\n- Do NOT include ``` or ```html fences.\n- Do NOT write literal characters like \"\\n\" inside the HTML.\n\nHere is the JSON input:\n```json\n{{ JSON.stringify($json) }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [896, -48],
+      "id": "71cab62c-9edc-493f-bb5f-2c844402d9d1",
+      "name": "DASH – AI Agent generazione pagina HTML"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [1360, -48],
+      "id": "a6ce5ca3-eb1e-4156-bd50-f4ac70f0d1c0",
+      "name": "DASH – Risposta HTML al Webhook"
+    },
+    {
+      "parameters": {
+        "content": "Recupera tutte le conversazioni registrate nella tabella Airtable. Questi dati includono domanda, risposta, utente e timestamp, necessari per popolare la dashboard.",
+        "height": 176,
+        "width": 208,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [192, 128],
+      "typeVersion": 1,
+      "id": "fc0e310d-1ee3-4703-846e-0f468bbf7e99",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Utilizza il modello Google Gemini per generare una pagina HTML responsive. Il prompt chiede all’AI di creare HTML con tabella log, lista temi e grafico Chart.js.",
+        "height": 176,
+        "width": 208,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1088, 176],
+      "typeVersion": 1,
+      "id": "0391ac03-52e9-438d-a409-6a6a82277e37",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "Trasforma i record Airtable in una struttura leggibile dall’AI:\n- lista delle conversazioni\n- conteggio dei messaggi per giorno della settimana\n- array di temi ricorrenti\n\n\nI dati trasformati vengono passati al modello AI.",
+        "height": 224,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [528, 128],
+      "typeVersion": 1,
+      "id": "b9b857ab-b7af-4ac1-a635-485d203313c2",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "Riceve la richiesta HTTP in ingresso. Questo nodo attiva la generazione della dashboard HTML quando viene chiamato via URL pubblico o test locale.",
+        "height": 144,
+        "width": 208,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-160, 128],
+      "typeVersion": 1,
+      "id": "e87d0434-4bdb-4b9d-9889-ad665d3946e0",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "Attiva il flusso manualmente. Viene usato per generare il report delle criticità su richiesta o periodicamente.",
+        "height": 112,
+        "width": 224
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-144, 672],
+      "typeVersion": 1,
+      "id": "9f322232-52bd-4f58-bf62-d8d89a7035fc",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "Ritorna la pagina HTML generata dall’AI come risposta del webhook. Questo trasforma il flusso in una vera dashboard web visualizzabile da browser.",
+        "height": 128,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1296, -208],
+      "typeVersion": 1,
+      "id": "b788de7c-acb7-432b-b709-1666329ca42f",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "Riceve i dati dal nodo Code e usa il modello Gemini per costruire la pagina HTML finale, applicando formattazione grafica e includendo lo script Chart.js.",
+        "height": 112,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [864, -176],
+      "typeVersion": 1,
+      "id": "ebb915d5-dae7-47a3-89c0-8dd2d004506d",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "Recupera tutte le conversazioni recenti dalla tabella Airtable. I dati includono domanda, risposta e timestamp. Servono come base per l’analisi dell’AI.",
+        "height": 128
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [208, 656],
+      "typeVersion": 1,
+      "id": "16c35b90-cf66-433b-8a0a-bed2b27fae9f",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "Invia il report HTML generato dall’AI all’indirizzo email configurato. Sostituisce la creazione del documento Google Docs, non possibile per problemi tecnici.",
+        "height": 128,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1152, 656],
+      "typeVersion": 1,
+      "id": "98b8f2ca-ff08-4778-88fe-3507cce06674",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "content": "Riceve i dati filtrati da Airtable e produce un report HTML pronto per essere inviato via email. Include sezioni come:\n- Executive Summary\n- Criticità individuate\n- Raccomandazioni operative",
+        "height": 176,
+        "width": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [688, 608],
+      "typeVersion": 1,
+      "id": "6dcb954e-db13-4d6f-a14d-4cd14c645d0b",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "content": "Il modello AI analizza:\n- risposte deboli o vaghe\n- domande ricorrenti\n- temi non coperti\n\n\npunti di miglioramento per prompt e knowledge base.\nGenera un report strutturato in HTML.",
+        "height": 192,
+        "width": 432
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [544, 1104],
+      "typeVersion": 1,
+      "id": "9e4ee34e-a4ce-4b2f-8065-70996c714f99",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-96, 832],
+      "id": "dd6bacd1-5874-4335-8572-85eb2189ebb6",
+      "name": "REPORT – Avvio manuale analisi"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert in chatbot quality analysis.\n\nI will give you the list of questions and answers the fitness bot provided.  \nYour task is to produce a detailed report with:\n\n1. A short executive summary.\n2. The main topics users asked about.\n3. Critical issues detected:\n   - vague or incomplete answers\n   - answers that may be incorrect or misleading\n   - repeated questions indicating missing knowledge\n   - topics not covered by the bot\n4. Clear recommendations to improve:\n   - the underlying knowledge base (PDF/manual)\n   - the chatbot prompts\n   - the conversation logic or structure\n\nReturn the report in clean HTML using tags like:\n<h1>, <h2>, <p>, <ul>, <li>, <strong>\n\nHere is the data in JSON:\n{{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [656, 832],
+      "id": "98247919-9651-4a90-bc70-6d9c8b284f71",
+      "name": "REPORT – AI Agent creazione report HTML"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [384, 1104],
+      "id": "1a6b45c5-12e6-4ec6-83d5-a710536f41dc",
+      "name": "REPORT – Modello Gemini per analisi",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qM0PWoKfSs1482g2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "pippo@fitnessnutrition.com",
+        "subject": "Fitness Bot – Weekly Critical Issues Report",
+        "message": "={{ '<p>Ciao, ecco il nuovo report delle criticità del chatbot fitness:</p><hr>' + $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1200, 832],
+      "id": "8ebe1fde-ef82-4932-90f2-01fb275dc36f",
+      "name": "REPORT – Invia report via email",
+      "webhookId": "6e660d00-4a6c-432e-b440-5f6c808a7b98",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "kgtp511kSuUOq3AD",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appUJhXtoC8dMbc6A",
+          "mode": "list",
+          "cachedResultName": "Academy Rapido",
+          "cachedResultUrl": "https://airtable.com/appUJhXtoC8dMbc6A"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhrcLycTty9pkR4",
+          "mode": "list",
+          "cachedResultName": "Rag Chat Logs",
+          "cachedResultUrl": "https://airtable.com/appUJhXtoC8dMbc6A/tblhrcLycTty9pkR4"
+        },
+        "returnAll": false,
+        "options": {},
+        "sort": {
+          "property": [
+            {
+              "field": "Datetime",
+              "direction": "desc"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [272, 832],
+      "id": "d993c6f4-5598-4c74-97cd-3bdba8fd7008",
+      "name": "REPORT – Legge log recenti",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "2x8TzRJmQ1yqaOHl",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "DASH – Webhook richiesta dashboard": {
+      "main": [
+        [
+          {
+            "node": "DASH – Legge log da Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DASH – Legge log da Airtable": {
+      "main": [
+        [
+          {
+            "node": "DASH – Prepara dati per HTML + grafico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DASH – Prepara dati per HTML + grafico": {
+      "main": [
+        [
+          {
+            "node": "DASH – AI Agent generazione pagina HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DASH – Modello Gemini per HTML": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "DASH – AI Agent generazione pagina HTML",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DASH – AI Agent generazione pagina HTML": {
+      "main": [
+        [
+          {
+            "node": "DASH – Risposta HTML al Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REPORT – Avvio manuale analisi": {
+      "main": [
+        [
+          {
+            "node": "REPORT – Legge log recenti",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REPORT – AI Agent creazione report HTML": {
+      "main": [
+        [
+          {
+            "node": "REPORT – Invia report via email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REPORT – Modello Gemini per analisi": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "REPORT – AI Agent creazione report HTML",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REPORT – Legge log recenti": {
+      "main": [
+        [
+          {
+            "node": "REPORT – AI Agent creazione report HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "70b6eb9c-39ee-4887-9321-66941baa6c6b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "89df87f203f3ae8addec82e687b6ebda90cb73cf51e7401c90cd93f022de3faa"
+  },
+  "id": "LlU6xyuHFDdZsG4K",
+  "tags": []
+}

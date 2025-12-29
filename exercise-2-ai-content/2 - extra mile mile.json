@@ -1,0 +1,65 @@
+{
+  "name": "2 - extra mile mile",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "c90939a1-fc0b-4093-9776-c74df446bc25",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "YOUR_SLACK_WEBHOOK_URL_HERE",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"text\": \"Test alert da n8n\" }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [208, 0],
+      "id": "146d03b9-b6d1-4e8f-9ecf-30a40951a440",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "content": "### ⚠️ Extra mile mile – W3 – Error Notifier - Donato Corbacio\n\nImplementazione del flusso di gestione errori:\n\n1. **Error Trigger** → si attiva automaticamente quando un workflow collegato va in errore (stato *Failed*).  \n2. **HTTP Request → Slack** → invia un messaggio al canale configurato tramite *Incoming Webhook*.  \n   - Contenuto minimo: testo con “Test alert da n8n”.  \n   - Può essere arricchito con campi dinamici come:  \n     - `{{$json.workflow.name}}` → nome del workflow che ha fallito.  \n     - `{{$json.execution.id}}` → ID dell’esecuzione.  \n     - `{{$json.lastNodeExecuted}}` → ultimo nodo eseguito prima dell’errore.  \n     - `{{$json.error.message}}` → messaggio d’errore.  \n     - `{{$json.execution.url}}` → link diretto all’esecuzione fallita in n8n.\n\n🔗 Questo workflow va selezionato nelle **impostazioni** dei workflow principali (campo *Error Workflow*).  \nIn questo modo, ogni volta che un flusso fallisce, parte automaticamente la notifica Slack.\n",
+        "height": 368,
+        "width": 816,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-208, -432],
+      "typeVersion": 1,
+      "id": "c486018a-8091-4ff9-b7cd-7b685f9c6322",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0107643d-851a-4f1c-9789-01a72645ca24",
+  "meta": {
+    "instanceId": "1aac722af8ed095f015853198d282e6276da62456febf84befeaf1f30ae90d46"
+  },
+  "id": "yLwZza3XJpuxbHnx",
+  "tags": []
+}

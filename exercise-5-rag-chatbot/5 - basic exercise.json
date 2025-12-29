@@ -1,0 +1,908 @@
+{
+  "name": "W9 (Esercizio) - Donato Corbacio",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# ☛ CHATTARE CON IL MODELLO AI",
+        "height": 1248,
+        "width": 2112,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-272, 656],
+      "typeVersion": 1,
+      "id": "d3fa44db-fc6b-4fe3-9083-4d4e1e2cc27d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "# ☛  INGESTIONE – Indicizzazione PDF in Supabase",
+        "height": 800,
+        "width": 2112,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-272, -224],
+      "typeVersion": 1,
+      "id": "2eb3a72c-5000-4cb7-a4c2-589becc8368a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Sezione dedicata al caricamento dei PDF da Dropbox e alla creazione del database vettoriale su Supabase. Questo blocco va eseguito solo quando cambiano i documenti.",
+        "height": 176,
+        "width": 528,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-976, 64],
+      "typeVersion": 1,
+      "id": "681735e9-a72d-47cf-9427-c5b573d12601",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-128, -48],
+      "id": "95b0d41e-a6ec-4a90-9486-6279fe8ae6f6",
+      "name": "INGEST - Manual trigger"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "folder",
+        "operation": "list",
+        "path": "/Fitness_Alimentazione",
+        "returnAll": true,
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [144, -48],
+      "id": "64b70ec5-8cf4-425b-baa2-091dcc5d661a",
+      "name": "INGEST – List files in /Fitness_Alimentazione",
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "RwWrawCMApxX6n9N",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7914a905-f295-4a2d-8fba-2fe2ee363489",
+              "leftValue": "={{$json[\"type\"]}}",
+              "rightValue": "file",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "9fa1364d-7b2c-4850-bcf7-8e7a74ed090a",
+              "leftValue": "={{$json[\"name\"].toLowerCase()}}",
+              "rightValue": "\\.pdf$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [432, -48],
+      "id": "f48194da-ce54-4e91-9310-dd1128a15cb5",
+      "name": "INGEST – Keep only PDF files"
+    },
+    {
+      "parameters": {
+        "batchSize": 6,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [720, -48],
+      "id": "2501edde-cf1f-48d5-abf8-1bbe7a83271d",
+      "name": "INGEST – Loop over PDF files (batch of 6)"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "download",
+        "path": "={{$json[\"pathDisplay\"]}}"
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [1072, 48],
+      "id": "a24fa49b-c4f0-44a1-9340-3f08311325c1",
+      "name": "INGEST – Download PDF from Dropbox",
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "RwWrawCMApxX6n9N",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [1200, 240],
+      "id": "036630b6-5237-48db-8025-d2c1d6acccb6",
+      "name": "INGEST – Create embeddings with Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qM0PWoKfSs1482g2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "embeddingBatchSize": 25,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [1280, 48],
+      "id": "508636b8-c2c3-406b-9bf8-eaf6f417e05f",
+      "name": "INGEST – Store documents in Supabase (vector store)",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ZTOmCqZjmYSyv5Sl",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [1440, 240],
+      "id": "21371df5-0b3e-45cf-be74-ce59c5a0f40c",
+      "name": "INGEST – Data loader (binary → document)"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [-144, 976],
+      "id": "2c573987-ea93-4582-aaaa-a031d81ba370",
+      "name": "CHAT – Chat trigger (Fitness & Nutrition bot)",
+      "webhookId": "c423db98-9605-4460-8db4-17af573c252e"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [224, 1152],
+      "id": "877dd68e-fe80-4e2f-a7db-8026aa07b0d5",
+      "name": "CHAT – AI Agent (Fitness & Nutrition RAG)"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [-64, 1376],
+      "id": "bacba026-5353-47a2-8ef3-30ff373074f2",
+      "name": "CHAT – Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qM0PWoKfSs1482g2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Use this tool to search for information about physical activity and nutrition based on the uploaded PDFs. \nAlways use this tool before answering. \nIf no relevant context is found, return nothing.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [560, 1360],
+      "id": "0e95f212-fa78-43d4-9c66-e739933361d1",
+      "name": "CHAT – Supabase search (RAG tool)",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ZTOmCqZjmYSyv5Sl",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [560, 1584],
+      "id": "f0162a39-3d55-4d7f-9d24-fb251ca6a6d9",
+      "name": "CHAT – Embeddings for Supabase search",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qM0PWoKfSs1482g2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [256, 1424],
+      "id": "1f58084d-d532-493d-bd10-817ccd21c064",
+      "name": "CHAT – Simple Memory (last N messages)"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [768, 992],
+      "id": "51c71725-b3a9-4676-9c23-e134dc4e4d18",
+      "name": "CHAT – Merge chat input + AI output"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appUJhXtoC8dMbc6A",
+          "mode": "list",
+          "cachedResultName": "My Workspace",
+          "cachedResultUrl": "https://airtable.com/appUJhXtoC8dMbc6A"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhrcLycTty9pkR4",
+          "mode": "list",
+          "cachedResultName": "Rag Chat Logs",
+          "cachedResultUrl": "https://airtable.com/appUJhXtoC8dMbc6A/tblhrcLycTty9pkR4"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Datetime": "={{ $now }}\n",
+            "User": "={{ $json.sessionId || \"anonymous\" }}",
+            "Question": "={{ $json.chatInput }}",
+            "Answer": "={{ $json.output }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Datetime",
+              "displayName": "Datetime",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "User",
+              "displayName": "User",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Question",
+              "displayName": "Question",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Answer",
+              "displayName": "Answer",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "fitness",
+                  "value": "fitness"
+                },
+                {
+                  "name": "alimentazione",
+                  "value": "alimentazione"
+                },
+                {
+                  "name": "altro",
+                  "value": "altro"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "answered",
+                  "value": "answered"
+                },
+                {
+                  "name": "not_found",
+                  "value": "not_found"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [1056, 1312],
+      "id": "ba616cd7-979f-4b36-b3ce-a5b75909ed4a",
+      "name": "CHAT – Save Q&A to Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "2x8TzRJmQ1yqaOHl",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ee2933c6-90d8-4801-98db-5180e925de20",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "=NON_TROVATO",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1088, 992],
+      "id": "a8c78a68-f61a-42fa-beac-a1f808b794a4",
+      "name": "CHAT – Check if answer not found"
+    },
+    {
+      "parameters": {
+        "description": "={{ \n\"Domanda non trovata dal chatbot:\\n\" +\n$json.chatInput +\n\"\\n\\nRisposta AI:\\n\" +\n$json.output \n}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.zendesk",
+      "typeVersion": 1,
+      "position": [1376, 976],
+      "id": "9380fe6c-29d3-4259-b173-60dfcfd4d1f7",
+      "name": "CHAT – Create Zendesk ticket for unresolved question",
+      "credentials": {
+        "zendeskApi": {
+          "id": "VIl4BuEaPFl5zJj2",
+          "name": "Zendesk account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Sezione dedicata alla chat con l’utente:\n- ## ricezione messaggi (Chat Trigger)\n- ## chiamata all’AI Agent con RAG su Supabase\n- ## salvataggio delle risposte in Airtable\n- ## apertura ticket Zendesk se la risposta non viene trovata",
+        "height": 400,
+        "width": 400,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-912, 912],
+      "typeVersion": 1,
+      "id": "3ff7905f-f52a-4b44-9c82-b66b025a2d81",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Legge il contenuto della cartella /Fitness_Alimentazione su Dropbox e restituisce tutti i file presenti, che verranno poi filtrati per includere solo i PDF.",
+        "height": 192,
+        "width": 160,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [112, 128],
+      "typeVersion": 1,
+      "id": "e7d16ee2-118a-4f6c-bf8a-114baad76bce",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Converte il file binario scaricato da Dropbox in un formato documento compatibile con il nodo Supabase Vector Store.",
+        "height": 112,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1408, 400],
+      "typeVersion": 1,
+      "id": "687dfe77-5beb-4dde-9cc8-243bbc9440e9",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "Converte il contenuto dei PDF in vettori (embeddings) usando Google Gemini.\nQuesti vettori saranno salvati nella tabella documents di Supabase per la ricerca RAG.",
+        "height": 144,
+        "width": 256,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1088, 384],
+      "typeVersion": 1,
+      "id": "2ba0e3c0-7f37-44f0-87ec-80c22b0a10be",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "Tool del tipo vector store collegato a Supabase.\nL’AI Agent lo usa per recuperare i passaggi più rilevanti dai PDF su fitness e alimentazione prima di generare la risposta.",
+        "height": 144
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [736, 1472],
+      "typeVersion": 1,
+      "id": "7d9ee762-d91e-43d0-a53b-2edf26f6da2d",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "Esegue il loop sui PDF selezionati, processandoli a batch di 6 elementi per volta.\nOgni iterazione scarica e indicizza i PDF collegati.",
+        "height": 128,
+        "width": 230,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [704, 256],
+      "typeVersion": 1,
+      "id": "4720c319-a573-4e08-ac46-55b91b319415",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "Espone una chat pubblica n8n.\nOgni messaggio dell’utente attiva l’AI Agent per rispondere a domande su fitness e alimentazione, usando i PDF indicizzati su Supabase.",
+        "height": 128,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-208, 800],
+      "typeVersion": 1,
+      "id": "ffd71457-7dd6-4cc3-82f8-1da37bb02ea3",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "Filtra gli elementi Dropbox mantenendo solo quelli di tipo file il cui nome termina con .pdf.\nSolo questi file PDF verranno scaricati e indicizzati.",
+        "height": 208,
+        "width": 160,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [416, 128],
+      "typeVersion": 1,
+      "id": "b0514606-68d8-485e-8ab0-8f2d4cccd513",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "Avvia manualmente il flusso di ingestione dei PDF da Dropbox per indicizzarli su Supabase.",
+        "width": 150,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-144, 144],
+      "typeVersion": 1,
+      "id": "71a8524c-88fe-4481-80ae-c1d681a5978b",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "Scarica il PDF corrente da Dropbox in formato binario, pronto per essere trasformato in documento e indicizzato in Supabase.",
+        "height": 96,
+        "width": 272,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [976, -144],
+      "typeVersion": 1,
+      "id": "76320d5a-72cc-4072-bd45-1947b5ec30ef",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "AI Agent che:\n- riceve le domande dal nodo Chat\n- usa Gemini come modello di chat\n- interroga Supabase come vector store (tool RAG)\n- utilizza la Simple Memory per mantenere il contesto della conversazione.",
+        "height": 192,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [192, 768],
+      "typeVersion": 1,
+      "id": "6f9ba568-c5c3-4b6d-82d5-38f7b7085ce8",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "content": "Inserisce nel vector store Supabase (tabella documents) gli embeddings generati dai PDF.\nQuesta tabella sarà poi interrogata dal chatbot per rispondere alle domande su fitness e alimentazione.",
+        "height": 128,
+        "width": 352,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1360, -160],
+      "typeVersion": 1,
+      "id": "791751dc-d5c1-4af9-8c74-c052d4e044a0",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "content": "Salva in Airtable:\n- data/ora della richiesta\n- utente / sessione\n- domanda (Question)\n- risposta generata (Answer)\nLa tabella funge da log delle conversazioni del chatbot.",
+        "height": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1232, 1424],
+      "typeVersion": 1,
+      "id": "bdedd982-0531-42b8-ad8f-2b074ace7d34",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {
+        "content": "Modello di chat principale usato dall’AI Agent per generare le risposte all’utente.",
+        "height": 96
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-160, 1536],
+      "typeVersion": 1,
+      "id": "2e8543c4-458c-4168-b093-f4ba6f9f7d66",
+      "name": "Sticky Note16"
+    },
+    {
+      "parameters": {
+        "content": "Converte la domanda dell’utente in un vettore con Google Gemini per poterla confrontare con i vettori salvati su Supabase e recuperare il contesto più simile.",
+        "height": 128,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [480, 1728],
+      "typeVersion": 1,
+      "id": "4e68882b-5d89-4bc1-bae8-927bbe600fb4",
+      "name": "Sticky Note17"
+    },
+    {
+      "parameters": {
+        "content": "Mantiene in memoria le ultime interazioni tra utente e chatbot.\nServe a dare continuità alla conversazione (follow-up, riferimenti a domande precedenti).",
+        "height": 128,
+        "width": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [160, 1584],
+      "typeVersion": 1,
+      "id": "0ffbcdde-7c1f-4e65-86a6-e5b2db3225b5",
+      "name": "Sticky Note18"
+    },
+    {
+      "parameters": {
+        "content": "Combina i dati provenienti dal Chat Trigger (es. chatInput, sessionId) con l’output dell’AI Agent (output).\nIl risultato viene usato sia per salvare i log in Airtable sia per controllare se la risposta è valida o “NON_TROVATO”.",
+        "height": 144,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [688, 784],
+      "typeVersion": 1,
+      "id": "e31442d6-a4b7-4635-883d-d97536b85990",
+      "name": "Sticky Note19"
+    },
+    {
+      "parameters": {
+        "content": "Verifica se il campo output è uguale a NON_TROVATO.\nIn questo caso il flusso entra nel ramo che apre un ticket su Zendesk per gestire la richiesta manualmente.",
+        "height": 128,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1056, 784],
+      "typeVersion": 1,
+      "id": "d99af57f-7d04-4711-b589-40391ab1be0f",
+      "name": "Sticky Note20"
+    },
+    {
+      "parameters": {
+        "content": "Crea un ticket in Zendesk quando il bot non è stato in grado di dare una risposta utile.\nNel campo descrizione inserisce:\n- la domanda dell’utente\n- la risposta fallita dell’AI (NON_TROVATO o contenuto simile).",
+        "height": 176,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1504, 768],
+      "typeVersion": 1,
+      "id": "c7e04469-e4f0-42f4-9e68-00d3ab208bc8",
+      "name": "Sticky Note21"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "INGEST - Manual trigger": {
+      "main": [
+        [
+          {
+            "node": "INGEST – List files in /Fitness_Alimentazione",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INGEST – List files in /Fitness_Alimentazione": {
+      "main": [
+        [
+          {
+            "node": "INGEST – Keep only PDF files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INGEST – Keep only PDF files": {
+      "main": [
+        [
+          {
+            "node": "INGEST – Loop over PDF files (batch of 6)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INGEST – Loop over PDF files (batch of 6)": {
+      "main": [
+        [],
+        [
+          {
+            "node": "INGEST – Download PDF from Dropbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INGEST – Download PDF from Dropbox": {
+      "main": [
+        [
+          {
+            "node": "INGEST – Store documents in Supabase (vector store)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INGEST – Create embeddings with Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "INGEST – Store documents in Supabase (vector store)",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INGEST – Store documents in Supabase (vector store)": {
+      "main": [
+        [
+          {
+            "node": "INGEST – Loop over PDF files (batch of 6)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INGEST – Data loader (binary → document)": {
+      "ai_document": [
+        [
+          {
+            "node": "INGEST – Store documents in Supabase (vector store)",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Chat trigger (Fitness & Nutrition bot)": {
+      "main": [
+        [
+          {
+            "node": "CHAT – AI Agent (Fitness & Nutrition RAG)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "CHAT – Merge chat input + AI output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – AI Agent (Fitness & Nutrition RAG)": {
+      "main": [
+        [
+          {
+            "node": "CHAT – Merge chat input + AI output",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "CHAT – Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "CHAT – AI Agent (Fitness & Nutrition RAG)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Supabase search (RAG tool)": {
+      "ai_tool": [
+        [
+          {
+            "node": "CHAT – AI Agent (Fitness & Nutrition RAG)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Embeddings for Supabase search": {
+      "ai_embedding": [
+        [
+          {
+            "node": "CHAT – Supabase search (RAG tool)",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Simple Memory (last N messages)": {
+      "ai_memory": [
+        [
+          {
+            "node": "CHAT – AI Agent (Fitness & Nutrition RAG)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Merge chat input + AI output": {
+      "main": [
+        [
+          {
+            "node": "CHAT – Check if answer not found",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "CHAT – Save Q&A to Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHAT – Save Q&A to Airtable": {
+      "main": [[]]
+    },
+    "CHAT – Check if answer not found": {
+      "main": [
+        [
+          {
+            "node": "CHAT – Create Zendesk ticket for unresolved question",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d8c4713e-a5c9-4644-b341-685fe5f4b07a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "89df87f203f3ae8addec82e687b6ebda90cb73cf51e7401c90cd93f022de3faa"
+  },
+  "id": "coQYvMSW7RnV3sZc",
+  "tags": []
+}
